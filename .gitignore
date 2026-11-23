@@ -1,0 +1,27 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# homework rendered for submission
+homework/**/*.html
+
+# os files
+.DS_Store
+
+# IDE files
+.ipynb_checkpoints/
+
+# data files
+*.mat
+*.tar
+*.zip
+*.parquet
+*.hash
+nyiso_data/
