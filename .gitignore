@@ -25,3 +25,6 @@ homework/**/*.html
 *.parquet
 *.hash
 nyiso_data/
+
+# generated report files
+report/*.pdf
