@@ -210,9 +210,12 @@ Our reproducible software pipeline (`Notebooks 00–04`) executes four sequentia
 * **Compact Budget Efficiency:** With just **$p=20$ sensors (`3.6%` of the grid)**, static `SSPOC` [@brunton2016sspoc] paired with `Multinomial Logit` achieves **`1.95` Annual Sharpe (`+$21,455.66` Cum PnL, `0.3085` Tail F1)**—beating the full 559-node `Multinomial Logit` baseline (`1.78` Sharpe, `+$19,539.42`) while cutting Max Drawdown by `30%` (`$13,173.59`).
 * **Spatial Generalization:** Re-running `SSPOC` ($p=20$) on adjacent load pockets relocates sensors to each zone's local bottlenecks, achieving **`2.41` Annual Sharpe** on `LONGIL` and **`4.04` Annual Sharpe** on `HUD VL`.
 
-::: {.figbox}
-**Figure 1 Placeholder — Geospatial Sensor Network & Corridor Allocation (`Notebook 04`, Cells 5 & 13):** Insert the NYISO geospatial map of the $p=20$ `SSPOC` bellwether sensors and cross-border interconnects alongside the Whole-Grid Reconstruction $R^2$ vs. `N.Y.C.` Trading Sharpe Pareto frontier.
-:::
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{../notebooks/figures/fig2_pareto_frontier.png}
+\caption{\textbf{Figure 2:} Whole-grid out-of-sample reconstruction $R^2$ versus N.Y.C.\ virtual trading Annual Sharpe across sensor budgets $p \in \{5, 10, 20, 40\}$ (Multinomial Logit). \texttt{QR-Pivoting} maximizes whole-grid $R^2$ ($0.945$ at $p=40$), whereas task-driven \texttt{SSPOC} achieves superior trading Sharpe ($1.95$ at $p=20$) despite low whole-grid $R^2$ ($0.136$).}
+\end{figure}
+
 
 ### 5.3 Physical Bottleneck Discovery & 30-Day Sensor Stability
 * **Zero In-Zone Redundancy:** Without any topological priors, `SSPOC` places **`0/20` sensors inside `N.Y.C.`** (where internal 345 kV/138 kV prices are tightly coupled) [@rudin2019stop] and instead selects upstream congestion interfaces:
@@ -226,9 +229,10 @@ Our reproducible software pipeline (`Notebooks 00–04`) executes four sequentia
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{../notebooks/figures/fig2_sspoc_sensor_map.png}
-\caption{\textbf{Figure 2:} Geospatial distribution of the $p=20$ \texttt{SSPOC} bellwether generator buses (red) and cross-border tie proxies (orange diamonds connected to green NYISO border POIs) selected for N.Y.C.\ (Zone J) tail-regime classification out of 559 candidate nodes (blue). Without topological priors, \texttt{SSPOC} places 0/20 sensors inside Zone J and locks onto upstream thermal interfaces across Long Island (\texttt{Huntington}), Hudson Valley (\texttt{Cricket Valley}), Central--East (\texttt{Nine Mile}, \texttt{Maple Ridge}), Western NY (\texttt{Niagara}, \texttt{Monroe}), and external ties (\texttt{HQ}, \texttt{NPX}, \texttt{PJM-VFT}).}
+\includegraphics[width=\columnwidth]{../notebooks/figures/fig3_sspoc_sensor_map.png}
+\caption{\textbf{Figure 3:} Geospatial distribution of the $p=20$ \texttt{SSPOC} bellwether generator buses (red) and cross-border tie proxies (orange diamonds connected to green NYISO border POIs) selected for N.Y.C.\ (Zone J) tail-regime classification out of 559 candidate nodes (blue). Without topological priors, \texttt{SSPOC} places 0/20 sensors inside Zone J and locks onto upstream thermal interfaces across Long Island (\texttt{Huntington}), Hudson Valley (\texttt{Cricket Valley}), Central--East (\texttt{Nine Mile}, \texttt{Maple Ridge}), Western NY (\texttt{Niagara}, \texttt{Monroe}), and external ties (\texttt{HQ}, \texttt{NPX}, \texttt{PJM-VFT}).}
 \end{figure}
+
 
 
 
@@ -277,11 +281,12 @@ To ensure a strictly apples-to-apples comparison across model families, **Panel 
 \end{table*}
 
 
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{../notebooks/figures/fig3_apples_to_apples_pnl.png}
-\caption{\textbf{Figure 3:} Apples-to-Apples 30-Day Scheduled Refit (720h) Cumulative Virtual Bidding PnL trajectories across 2025--2026 out-of-sample on N.Y.C. (Zone J, 1~MWh unit size, \$0.50/MWh fee). \texttt{Scheduled 30-Day Refit SSPOC} ($p=20$ sparse buses, 0 exogenous inputs) avoids the Summer 2025 drawdowns suffered by dense nonlinear classifiers and overtakes dense 983-feature \texttt{Continuous Ridge Regression} in 2026 to finish \#1 overall (+\$35,246, 3.56 Sharpe).}
-\end{figure*}
+\includegraphics[width=\columnwidth]{../notebooks/figures/fig4_apples_to_apples_pnl.png}
+\caption{\textbf{Figure 4:} Apples-to-Apples 30-Day Scheduled Refit (720h) Cumulative Virtual Bidding PnL trajectories across 2025--2026 out-of-sample on N.Y.C. (Zone J, 1~MWh unit size, \$0.50/MWh fee). \texttt{Scheduled 30-Day Refit SSPOC} ($p=20$ sparse buses, 0 exogenous inputs) avoids Summer 2025 drawdowns and overtakes dense 983-feature \texttt{Continuous Ridge Regression} in 2026 to finish \#1 overall (+\$35,246, 3.56 Sharpe).}
+\end{figure}
+
 
 
 ---
