@@ -13,7 +13,7 @@ This folder contains the Jupyter notebooks for our NYISO Day-Ahead to Real-Time 
   4. `04_sspoc_sparse_sensor_placement.ipynb` — `SSPOC` sparse sensor ablation & cross-paradigm comparison
 * **Supporting Python Modules:**
   * `data_loader.py` — Downloads, aligns, and caches NYISO P-2A/2B/4A/4B/7/19/23/27/32/54/58/59/63/70/511 datasets into `nyiso_data/merged_parquet/`
-  * `baseline.py` & `baseline2.py` — Econometric and ML reference models (`ARIMAX`, `Ridge`, `GBDT`, `Multinomial Logit`, `LDA`, `MLP`)
+  * `baseline2.py` — Econometric and ML reference models (`ARIMAX`, `Ridge`, `GBDT`, `Multinomial Logit`, `LDA`, `MLP`)
   * `dmd.py` — Unforced `Exact DMD` and `BOP-DMD` baselines
   * `evaluate_models.py` & `sparse_sensor.py` — `SSPOC`, `QR-Pivoting`, `Mutual-Info`, POD reconstruction, and geospatial sensor plotting
 

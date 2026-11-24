@@ -6,6 +6,7 @@ import pandas as pd
 import pyarrow.parquet as pq
 from tqdm import tqdm
 
+# Note: this is not used in this study. It is included as an optional next step to determinr optimal lot size of bids, given DART spread predictions.
 
 def _extract_hourly_supply_slopes(
     gen_bids_dir: Path,
