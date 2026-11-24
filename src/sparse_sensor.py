@@ -16,7 +16,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.class_weight import compute_sample_weight
 
-from baseline2 import _apply_probability_threshold, compute_trading_metrics
+from baseline import _apply_probability_threshold, compute_trading_metrics
 
 RESULTS_CACHE_DIR = Path("./nyiso_data/ablation_cache")
 RESULTS_CACHE_DIR.mkdir(parents=True, exist_ok=True)
