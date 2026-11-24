@@ -1,9 +1,9 @@
 ---
-title: "Sparse Sensor Placement and Dynamical Control for Interpretable NYISO DART Spread Virtual Bidding"
-subtitle: "NYISO Zone J (N.Y.C.) | 2020–2024 Train/Validation | 2025–2026 Out-of-Sample (16,306 Hours)"
+title: "Sparse Sensor Placement for Classification and Regression in NYISO DART Spread Virtual Bidding"
+# subtitle: "NYISO Zone J (N.Y.C.) | 2020–2024 Train/Validation | 2025–2026 Out-of-Sample (16,306 Hours)"
 author:
-  - "Patrick Smith"
-  - "Tyler Darwin"
+  - "Patrick Smith — University of Washington"
+  - "Tyler Darwin — University of Washington"
 date: "November 2026"
 abstract: |
   Two-settlement wholesale electricity markets exhibit clustered, non-Gaussian price divergences between Day-Ahead and Real-Time Locational Based Marginal Prices (DART spreads) driven by binding transmission constraints and forecast errors. Using 59,958 hourly observations across 559 NYISO generator buses (2020–2024 training/validation, 2025–2026 out-of-sample test) under a strict 48-hour causal auction filtration ($\mathcal{F}_{D-1,05:00}$) and \$0.50/MWh transaction hurdle, we evaluate dynamical modal decomposition (DMD / DMDc) alongside discriminative sparse sensor placement (SSPOC) and continuous sparse sensor regression (QR-Pivoting) for N.Y.C. (Zone J) virtual bidding. We first show that autonomous Exact DMD and BOP-DMD suffer from 48-hour eigenvalue damping (1.6% trade frequency, -\$985.77 Cum PnL) and winter phase inversion, while a static DMDc model frozen in December 2024 incurs a -\$37,920.72 regime-drift drawdown during the January–February 2026 cold snap. Rolling a reduced-order DMDc model iteratively across the 48-hour trajectory of 424 Day-Ahead exogenous forecasts with 30-day (720h) scheduled expanding-window refitting resolves this non-stationarity, achieving 3.12 Annual Sharpe (+\$24,111.80 Cum PnL, \$5,181.87 Max DD). Finally, applying Sparse Sensor Placement Optimization for Classification (SSPOC) on a rank-25 POD basis (98.0% energy) demonstrates that just $p=20$ generator buses (3.6% of the grid) with zero exogenous covariates paired with a 30-day refit Multinomial Logit classifier achieves 3.56 Annual Sharpe (+\$35,246.10 Cum PnL, 0.4167 Macro F1), outperforming both dense dynamical control and continuous sparse sensor regression. Without topological priors, SSPOC places 0/20 sensors inside Zone J and instead locks onto invariant upstream thermal bottlenecks and cross-border ties (0.864 mean 30-day step Jaccard stability), delivering an interpretable "glass-box" framework for algorithmic power trading.
@@ -42,6 +42,102 @@ We constructed an hourly dataset from public NYISO market reports spanning **Jan
 
 [^2]: Enforcing a strict 48-hour causal purge gap between the latest realized spread observation and the target delivery hour prevents look-ahead leakage across all 24 hours of the $D\text{-}1$ Day-Ahead auction clearing window [@lopezdeprado2018advances].
 
+\begin{figure*}[t]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+    font=\sffamily\footnotesize,
+    >=Stealth,
+    node distance=5mm and 7mm,
+    box/.style={draw=#1!75!black, fill=#1!8, rounded corners=3pt, thick, align=center, minimum height=11mm, inner sep=4pt},
+    header/.style={font=\sffamily\bfseries\footnotesize, text=#1!80!black},
+    arrow/.style={->, thick, draw=black!70}
+]
+
+% Column 1: NYISO Causal Inputs
+\node[box=gray, minimum width=36mm] (nodal) {
+    \textbf{Realized Grid State}\\
+    559 Gen Buses + 15 Zones\\
+    Lagged $48\text{h}$ ($\mathcal{F}_{D-1,05:00}$)
+};
+\node[box=gray, minimum width=36mm, below=7mm of nodal] (exog) {
+    \textbf{Day-Ahead Controls}\\
+    424 Vintage-Filtered Vars\\
+    Trajectory $\mathbf{U}_{t-48:t}$
+};
+
+% Column 2: Three Modeling Paradigms
+\node[box=teal, minimum width=52mm, right=10mm of nodal, yshift=9mm] (sspoc) {
+    \textbf{Branch B: SSPOC (Classification)}\\
+    Rank-25 POD + LDA + $\ell_1$ Sensor Selection\\
+    \textbf{20 Fixed Upstream Buses (3.6\% Grid, 0 Exog)}
+};
+\node[box=orange, minimum width=52mm, below=4.5mm of sspoc] (qr) {
+    \textbf{Branch C: QR-Pivoting / Ising (Regression)}\\
+    POD Condition-Number / D-Optimal Placement\\
+    Whole-Grid Reconstruction ($R^2 = 0.945$)
+};
+\node[box=blue, minimum width=52mm, below=4.5mm of qr] (dmdc) {
+    \textbf{Branch A: Forced DMDc (Control)}\\
+    60-Dim Delay State + 424 Exog Controls\\
+    Rank-12 POD 48-Step Rollout ($\mathbf{A}_r\mathbf{z}_k + \mathbf{B}_r\mathbf{u}_k$)
+};
+
+% Column 3: Scheduled Adaptation & Decision Rule
+\node[box=teal, minimum width=42mm, right=9mm of sspoc] (clf_sspoc) {
+    \textbf{30-Day Refit Logit}\\
+    Fixed 20 Sensors + Monthly Clf\\
+    3-Class Tails ($q_{0.15}, q_{0.85}$)
+};
+\node[box=orange, minimum width=42mm, right=9mm of qr] (reg_qr) {
+    \textbf{Continuous Spread Reg.}\\
+    Sparse Nodal Regression\\
+    Cost Hurdle ($|\hat{S}_t| > \$0.50$)
+};
+\node[box=blue, minimum width=42mm, right=9mm of dmdc] (clf_dmdc) {
+    \textbf{30-Day Refit DMDc}\\
+    720h Expanding Window\\
+    Spread Hurdle ($|\hat{S}_t| > \tau$)
+};
+
+% Column 4: Unified OOS Backtest
+\node[box=purple, minimum width=36mm, right=9mm of reg_qr, minimum height=38mm] (oos) {
+    \textbf{2025--2026 OOS}\\
+    \textbf{N.Y.C. (Zone J)}\\
+    16,306 Hours\\[3pt]
+    INC / DEC / Abstain\\
+    1~MWh Unit Size\\
+    \$0.50/MWh Fee\\[3pt]
+    \textbf{SSPOC: 3.56 Sharpe}\\
+    \textbf{DMDc: 3.12 Sharpe}
+};
+
+% Arrows: Inputs -> Paradigms
+\draw[arrow] (nodal.east) -- ++(4mm,0) |- (sspoc.west);
+\draw[arrow] (nodal.east) -- ++(4mm,0) |- (qr.west);
+\draw[arrow] (nodal.east) -- ++(4mm,0) |- (dmdc.west);
+\draw[arrow, draw=blue!75!black] (exog.east) -- ++(5.5mm,0) |- ([yshift=-2mm]dmdc.west);
+
+% Arrows: Paradigms -> Refit/Decision
+\draw[arrow] (sspoc.east) -- (clf_sspoc.west);
+\draw[arrow] (qr.east) -- (reg_qr.west);
+\draw[arrow] (dmdc.east) -- (clf_dmdc.west);
+
+% Arrows: Refit/Decision -> OOS Backtest
+\draw[arrow] (clf_sspoc.east) -- ++(4mm,0) |- ([yshift=11mm]oos.west);
+\draw[arrow] (reg_qr.east) -- (oos.west);
+\draw[arrow] (clf_dmdc.east) -- ++(4mm,0) |- ([yshift=-11mm]oos.west);
+
+% Stage Labels Above Columns
+\node[header=gray, above=2mm of sspoc.north west, xshift=-24mm] {1. Causal Filtration};
+\node[header=black, above=2mm of sspoc] {2. Sparse / Modal Decomposition};
+\node[header=black, above=2mm of clf_sspoc] {3. Refit \& Signal Rule};
+\node[header=purple, above=2mm of oos.north, yshift=3.5mm] {4. Evaluation};
+
+\end{tikzpicture}%
+}
+\caption{\textbf{Figure 1:} End-to-end causal filtration ($\mathcal{F}_{D-1,05:00}$) and cross-paradigm modeling architecture comparing discriminative sparse sensor placement (\texttt{SSPOC}), continuous reconstruction sensing (\texttt{QR-Pivoting}), and forced dynamical control (\texttt{DMDc}) on NYISO Zone J (\texttt{N.Y.C.}).}
+\end{figure*}
 
 ---
 
@@ -61,7 +157,8 @@ From decision time $t_{\text{dec}} = t - 48$, we roll $\mathbf{z}_k$ iteratively
 [^3]: Separating $\mathbf{u}_k$ from $\mathbf{x}_k$ preserves unidirectional atmospheric-to-grid causality and prevents high-variance diurnal temperature and solar cycles from dominating the leading rank-12 POD modes [@proctor2016dmdc].
 
 ### 3.2 Sparse Sensor Placement Optimization for Classification (`SSPOC`)
-Rather than reconstructing the full 559-bus state vector $\mathbf{x}_t \in \mathbb{R}^{559}$ [@candes2008compressive; @jami2023surrogates], we partition the training `N.Y.C.` spread distribution into three discrete regimes using leak-free `2020–2024` quantiles ($q_{0.15}, q_{0.85}$) [@huisman2003regime]:
+Rather than reconstructing the full 559-bus state vector $\mathbf{x}_t \in \mathbb{R}^{559}$ [@candes2008compressive; @jami2023surrogates], we partition the training `N.Y.C.` spread distribution into three discrete regimes—regular, positive spike, and negative spike—using leak-free `2020–2024` quantiles ($q_{0.15}, q_{0.85}$) [@huisman2003regime; @forgetta2025distributional]:
+
 
 $$y_t = \begin{cases} +1 \text{ (INC)}, & S_{\text{NYC}, t} > q_{0.85} \\ -1 \text{ (DEC)}, & S_{\text{NYC}, t} < q_{0.15} \\ \phantom{+}0 \text{ (Abstain)}, & q_{0.15} \le S_{\text{NYC}, t} \le q_{0.85} \end{cases}$$
 
@@ -120,7 +217,7 @@ Our reproducible software pipeline (`Notebooks 00–04`) executes four sequentia
   * **Central & Western Bulk Transfer (`CENTRL`, `MHK VL`, `WEST`, `GENESE`):** `NINE_MILE_1 & 2` (**`100%`** persistence), `CANDIGU_WT_PWR` (**`100%`** persistence), `MAPLE_RIDGE_WT_1 & 2`, and Niagara-area nodes.
   * **UPNY–ConEd Hudson Valley Corridor (`HUD VL`):** `CRICKET___VALLEY_CC1–CC3` (`91.3%` persistence) and `SHOEMAKER___GT`.
   * **Cross-Border External Ties (`PJM`, `H Q`, `NPX`):** `PJM_GEN_VFT_PROXY` (Linden VFT controllable tie into Zone J, `91.3%` persistence), `HQ_GEN_IMPORT`, and `NPX_GEN_1385_PROXY`.
-* **Fixed Physical Sensors + 30-Day Classifier Refit Wins:** Across 23 monthly refits in `2025–2026`, `SSPOC` ($p=20$) maintains **`0.864` mean step-to-step Jaccard stability**. Keeping the **20 upstream bellwether sensors fixed** while **retraining the `Multinomial Logit` classifier every 30 days** achieves **`3.56` Annual Sharpe (`+$35,246.10` Cum PnL, `0.4167` Macro F1, `$7,595.29` Max DD)**—outperforming dynamic monthly sensor re-selection (`2.21` Sharpe, `+$21,483.10` Cum PnL).[^5]
+* **Fixed Physical Sensors + 30-Day Classifier Refit Wins & Budget Scaling ($p \in \{5, 10, 20, 40\}$):** Across 23 monthly refits in `2025–2026`, `SSPOC` ($p=20$) maintains **`0.864` mean step-to-step Jaccard stability**. Keeping the **20 upstream bellwether sensors fixed** while **retraining the `Multinomial Logit` classifier every 30 days** achieves **`3.56` Annual Sharpe (`+$35,246.10` Cum PnL, `0.4167` Macro F1, `$7,595.29` Max DD)**—outperforming dynamic monthly sensor re-selection (`2.21` Sharpe, `+$21,483.10` Cum PnL).[^5] Sweeping the sensor budget across $p \in \{5, 10, 20, 40\}$ under the 30-day classifier refit schedule confirms an inverted-U scaling curve (`2.42` Sharpe at $p=5$, `3.16` Sharpe / `$4,772.06` Max DD at $p=10$, peaking at $p=20$, and declining to `3.02` Sharpe at $p=40$ as collinear buses enter the active set).
 
 [^5]: Dynamic monthly sensor re-selection allows short-term local volatility to pull collinear in-zone `N.Y.C.` units (`Arthur Kill`, `Linden Cogen`) into the active sensor set at the expense of upstream western corridors, whereas fixing the 20 upstream `SSPOC` nodes separates invariant grid topology from non-stationary market regimes.
 
@@ -182,12 +279,12 @@ Our reproducible software pipeline (`Notebooks 00–04`) executes four sequentia
 4. **Cross-Formulation Synthesis:** `[PLACEHOLDER: 1–2 sentences summarizing how Patrick's SSPOC classification results compare against Tyler's continuous sparse regression results on sensor overlap and optimal budget p]`.
 
 ### 6.2 Limitations & Next Steps
-* **Group-Sparse ($\ell_{2,1}$) Spatial Regularization:** Standard $\ell_1$ `SSPOC` occasionally selects multiple co-located units at the same generating facility (`Cricket Valley CC1–3`, `Nine Mile 1–2`, `Maple Ridge WT 1–2`). Incorporating plant-level group-sparse penalties will enforce strict geographic diversity across substations.
+* **Uncertainty-Aware & Group-Sparse ($\ell_{2,1}$) Regularization:** A 30-resample (`168h` block-bootstrap) weight-uncertainty audit (`Bagged SSPOC`) reveals that high sensor weight variance ($\sigma_i \in [0.17, 0.26]$) concentrates among collinear in-zone `N.Y.C.` peakers, while scoring sensors by $\mu_i - 0.5\sigma_i$ achieves **`3.53` Annual Sharpe** and cuts Max Drawdown to **`$6,195.24`** (`53.6%` win rate). By contrast, Bayesian reconstruction design criteria—including Klishin et al.'s 2-point Ising D-optimal placement (`1.71` Sharpe, max $\sigma_i = \$15.80/\text{MWh}$) [@klishin2026energy], A-optimal POD posterior trace minimization (`1.67` Sharpe), and max nodal variance (`-0.58` Sharpe)—underperform `SSPOC` (`3.59` Sharpe), confirming that discriminant observability outperforms state-variance reduction. Combining uncertainty penalties with plant-level group-sparse ($\ell_{2,1}$) constraints will further prevent co-located unit clustering (`Cricket Valley CC1–3`, `Nine Mile 1–2`).
 * **Hybrid `SSPOC` + `DMDc` Fusion:** Combining `SSPOC`'s 20 sparse nodal sensors with `DMDc`'s 48-hour Day-Ahead exogenous trajectory forecasts could unify spatial bottleneck detection with forward weather/load forcing.
 * **Liquidity-Aware Quadratic Lot Sizing:** Extending our `1 MWh` unit-size benchmark to multi-megawatt institutional deployment by scaling position size $q_t^*$ inversely with causal Day-Ahead `P-27` bid-stack slopes ($\Lambda_{t-24}$) to account for self-induced auction price impact [@hubert2026trading; @almgren2001optimal].[^6]
 
 [^6]: Following Almgren and Chriss [@almgren2001optimal] and Hubert et al. [@hubert2026trading], accounting for linear Day-Ahead bid-stack slope $\Lambda_t$ yields optimal position sizing $q_t^* = \min\big(q_{\max}, \max(0, |\hat{S}_t| - c) / (2\Lambda_t)\big)$, automatically throttling megawatt exposure during steep peaker-stack hours.
 
----
+
 
 # References
