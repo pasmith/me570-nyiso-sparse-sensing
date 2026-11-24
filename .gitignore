@@ -28,3 +28,6 @@ nyiso_data/
 
 # generated report files
 report/*.pdf
+
+# generated report figures
+figures/

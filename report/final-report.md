@@ -182,12 +182,15 @@ where column pivoting $\mathbf{P}$ greedily selects $p$ sensor locations that ma
 
 Our reproducible software pipeline (`Notebooks 00–04`) executes four sequential stages under strict chronological walk-forward validation [@lopezdeprado2018advances; @bailey2014deflated]:
 
-1. **Stage 1 — Econometric, ML & Spectral Baselines (`Notebook 01`):** Benchmarks 14 reference models on `N.Y.C.` (`Continuous Ridge`, `Natural-Prior MLP`, `GBDT`, `Multinomial Logit`, `LDA`, `Causal 48h Persistence`, and unforced `Exact DMD` / `BOP-DMD`) [@mann2016dmd; @sashidhar2022bopdmd; @galarneauvincent2023foreseeing; @hubert2026trading].
+1. **Stage 1 — Econometric, ML & Spectral Baselines (`Notebook 01`):** Benchmarks 14 static (`2020–2024` frozen) reference models on `N.Y.C.` (`Continuous Ridge`, `Natural-Prior MLP`, `GBDT`, `Multinomial Logit`, `Hourly ARIMAX`, `LDA`, `Causal 48h Persistence`, and unforced `Exact DMD` / `BOP-DMD`) [@mann2016dmd; @sashidhar2022bopdmd; @galarneauvincent2023foreseeing; @hubert2026trading], and re-evaluates the five primary econometric and ML baselines under the **identical 30-day (`720h`) expanding-window refit schedule** for a strictly apples-to-apples comparison.
+
 2. **Stage 2 — `DMDc` Forensics & Scheduled Refitting (`Notebooks 02–03`):** Diagnoses unforced DMD eigenvalue damping and static 48h-jump `DMDc` winter regime drift (`Notebook 02`), then evaluates 1-hour iterative `DMDc` rollouts under both frozen (`Dec 2024`) and **scheduled 30-day (`720h`) expanding-window refits** (`Notebook 03`) [@proctor2016dmdc; @dylewsky2020stochastically].
+
 3. **Stage 3 — `SSPOC` Ablation, Physical Mapping & Stability (`Notebook 04`):**
    * Contrasts `SSPOC`, `QR-Pivoting`, and `Mutual-Info` across $p \in \{5, 10, 20, 40\}$ and 5 classifiers (`Multinomial Logit`, `Logit`, `GBDT`, `LDA`, `Balanced MLP`) [@brunton2016sspoc; @manohar2018data; @manohar2018neural].
    * Maps top sensors onto NYISO `P-19`/`P-23` metadata [@nyiso2024virtual; @rudin2019stop] and tests spatial generalization on `LONGIL` and `HUD VL`.
    * Evaluates **30-day (`720h`) expanding-window refitting** for `SSPOC` ($p=20$), comparing **fixed physical sensors + 30-day classifier refits** against **dynamic 30-day sensor re-selection + classifier refits**, quantified via step-to-step Jaccard similarity $J(S_t, S_{t-1}) = |S_t \cap S_{t-1}| / |S_t \cup S_{t-1}|$.[^4]
+
 4. **Stage 4 — Continuous Sparse Sensor Regression (`[PLACEHOLDER: Tyler's Notebook Name]`):** `[PLACEHOLDER: Describe Tyler's continuous regression experimental setup, sensor budgets p, regressors (e.g., Ridge, GBDT, MLP on QR-Pivoting vs. SSPOC nodes), and hurdle tuning]`.
 
 [^4]: Step-to-step Jaccard similarity $J(S_t, S_{t-1}) \in \lbrack 0, 1 \rbrack$ measures the intersection-over-union of active sensor sets between consecutive 30-day refits, isolating structural grid invariance from short-term sampling noise.
@@ -221,9 +224,13 @@ Our reproducible software pipeline (`Notebooks 00–04`) executes four sequentia
 
 [^5]: Dynamic monthly sensor re-selection allows short-term local volatility to pull collinear in-zone `N.Y.C.` units (`Arthur Kill`, `Linden Cogen`) into the active sensor set at the expense of upstream western corridors, whereas fixing the 20 upstream `SSPOC` nodes separates invariant grid topology from non-stationary market regimes.
 
-::: {.figbox}
-**Figure 2 Placeholder — 30-Day `SSPOC` Jaccard Stability & Selection Heatmap (`Notebook 04`, Cell 11):** Insert the two-panel figure showing the 30-day Step-to-Step vs. Anchor Jaccard trajectory (`0.864` mean) and the binary selection persistence heatmap for the top 20 bellwether nodes.
-:::
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{../notebooks/figures/fig2_sspoc_sensor_map.png}
+\caption{\textbf{Figure 2:} Geospatial distribution of the $p=20$ \texttt{SSPOC} bellwether generator buses (red) and cross-border tie proxies (orange diamonds connected to green NYISO border POIs) selected for N.Y.C.\ (Zone J) tail-regime classification out of 559 candidate nodes (blue). Without topological priors, \texttt{SSPOC} places 0/20 sensors inside Zone J and locks onto upstream thermal interfaces across Long Island (\texttt{Huntington}), Hudson Valley (\texttt{Cricket Valley}), Central--East (\texttt{Nine Mile}, \texttt{Maple Ridge}), Western NY (\texttt{Niagara}, \texttt{Monroe}), and external ties (\texttt{HQ}, \texttt{NPX}, \texttt{PJM-VFT}).}
+\end{figure}
+
+
 
 ### 5.4 Continuous Sparse Sensor Regression Results (Tyler Darwin)
 
@@ -237,6 +244,8 @@ Our reproducible software pipeline (`Notebooks 00–04`) executes four sequentia
 
 ### 5.5 Unified Cross-Paradigm Comparison (`2025–2026` Out-of-Sample, `N.Y.C.`)
 
+To ensure a strictly apples-to-apples comparison across model families, **Panel B of Table 1** evaluates all paradigms under the identical **30-day (`720h`) scheduled expanding-window refit protocol**. Under periodic refitting, **`Scheduled 30-Day Refit SSPOC` ($p=20$)** ranks **#1 overall (`3.56` Annual Sharpe, `+$35,246.10` Cum PnL)**, outperforming dense 983-feature `Continuous Ridge Regression [30d Refit]` (`3.43` Sharpe, `+$33,770.60`), `Scheduled 30-Day Refit DMDc` (`3.12` Sharpe, `+$24,111.80`), and all econometric and machine learning baselines while monitoring only `3.6%` of the grid's buses and zero exogenous forecast feeds. Across the Stage 1 baselines, linear and autoregressive models with strong structural inductive bias (`Hourly ARIMAX` improving from `1.25` to `2.13` Sharpe and `Multinomial Logit` from `1.78` to `2.41` Sharpe, while `Continuous Ridge` remains steady at `3.43` Sharpe with higher cumulative PnL of `+$33,770.60`) benefit from adapting to seasonal fuel and load shifts without overfitting single-day spikes. Conversely, higher-capacity nonlinear baselines (`Natural-Prior MLP` declining from `2.82` to `2.24` Sharpe and `GBDT` from `2.17` to `2.12` Sharpe with `$20,785.64` Max DD) suffer under expanding refits because re-estimating nonlinear decision boundaries immediately after Summer 2025 volatility shocks causes them to overreact to transient regimes and miscalibrate fixed probability hurdles ($\tau = 0.24$).
+
 \begin{table*}[t]
 \centering
 \footnotesize
@@ -247,25 +256,32 @@ Our reproducible software pipeline (`Notebooks 00–04`) executes four sequentia
 \toprule
 \textbf{Model / Formulation} & \textbf{Grid Telemetry} & \textbf{Cum PnL (\$)} & \textbf{Sharpe} & \textbf{Max DD (\$)} & \textbf{Freq (\%)} & \textbf{Win (\%)} & \textbf{Macro F1} & \textbf{Tail F1} \\
 \midrule
+\multicolumn{9}{l}{\textit{\textbf{Panel A: Static Models (Frozen Dec 2024)}}} \\
 1. Unforced BOP-DMD (Static) & 15 Zones (Dense) & -985.77 & -0.19 & 4,772.75 & 1.6 & 43.2 & 0.2644 & 0.0243 \\
 2. Static 48h-Jump DMDc (Frozen '24) & 15 Zones + 424 Exog & 630.27 & 0.06 & 37,920.72 & 58.8 & 51.4 & 0.3697 & 0.2812 \\
-3. Scheduled 30-Day Refit DMDc (720h) & 15 Zones + 424 Exog & 24,111.80 & 3.12 & 5,181.87 & 36.2 & 52.2 & 0.3714 & 0.2312 \\
-4. Static SSPOC ($p=20$, Multinom. Logit) & 20/559 Buses (3.6\% Sparse) & 21,455.70 & 1.95 & 13,173.60 & 68.6 & 53.2 & 0.3732 & 0.3085 \\
-5. Full 30-Day Refit SSPOC (Sensors + Clf) & 20/559 Buses (Dynamic) & 21,483.10 & 2.21 & 10,127.10 & 42.7 & 51.0 & 0.3875 & 0.2609 \\
-\textbf{6. Scheduled 30-Day Refit SSPOC ($p=20$)} & \textbf{20/559 Buses (3.6\% Fixed)} & \textbf{35,246.10} & \textbf{3.56} & \textbf{7,595.29} & \textbf{48.9} & \textbf{49.5} & \textbf{0.4167} & \textbf{0.2953} \\
-7. Sparse Regression ([Tyler TBD]) & [p/559 Buses] & [TBD] & [TBD] & [TBD] & [TBD] & [TBD] & --- & --- \\
+3. Static SSPOC ($p=20$, Multinom. Logit) & 20/559 Buses (3.6\% Sparse) & 21,455.70 & 1.95 & 13,173.60 & 68.6 & 53.2 & 0.3732 & 0.3085 \\
 \midrule
-\textit{Ref: Continuous Ridge (Full Grid)} & \textit{559 Buses + 424 Exog} & \textit{27,964.00} & \textit{3.50} & \textit{---} & \textit{---} & \textit{---} & \textit{---} & \textit{---} \\
+\multicolumn{9}{l}{\textit{\textbf{Panel B: Apples-to-Apples Scheduled 30-Day Refit (720h Expanding Window)}}} \\
+\textbf{4. Scheduled 30-Day Refit SSPOC ($p=20$)} & \textbf{20/559 Buses (3.6\% Fixed)} & \textbf{35,246.10} & \textbf{3.56} & \textbf{7,595.29} & \textbf{48.9} & \textbf{49.5} & \textbf{0.4167} & \textbf{0.2953} \\
+5. Continuous Ridge Regression [30d Refit] & 559 Buses + 424 Exog & 33,770.60 & 3.43 & 5,108.07 & 38.4 & 47.2 & --- & --- \\
+6. Scheduled 30-Day Refit DMDc (Control) & 15 Zones + 424 Exog & 24,111.80 & 3.12 & 5,181.87 & 36.2 & 52.2 & 0.3714 & 0.2312 \\
+7. Hubert Multinomial Logit [30d Refit] & 559 Buses + 424 Exog & 26,213.74 & 2.41 & 18,488.68 & 58.1 & 53.3 & --- & --- \\
+8. Natural-Prior MLP ($\tau=0.24$) [30d Refit] & 424 Exog-Only & 22,759.02 & 2.24 & 12,868.71 & 42.9 & 50.6 & --- & --- \\
+9. Full 30-Day Refit SSPOC (Sensors + Clf) & 20/559 Buses (Dynamic) & 21,483.10 & 2.21 & 10,127.10 & 42.7 & 51.0 & 0.3875 & 0.2609 \\
+10. Hourly ARIMAX (24-hr) [30d Refit] & Exog + AR(48,72,168) & 19,752.80 & 2.13 & 5,907.41 & 18.2 & 44.9 & --- & --- \\
+11. Galarneau-Vincent GBDT [30d Refit] & 559 Buses + 424 Exog & 23,227.52 & 2.12 & 20,785.64 & 47.5 & 55.2 & --- & --- \\
+12. Sparse Regression ([Tyler TBD]) & [p/559 Buses] & [TBD] & [TBD] & [TBD] & [TBD] & [TBD] & --- & --- \\
 \bottomrule
 \end{tabular}%
 }
 \end{table*}
 
 
-
-::: {.figbox}
-**Figure 3 Placeholder — Full-Project Out-of-Sample Cumulative PnL Trajectories (`Notebook 04`, Cell 12):** Insert the cumulative virtual bidding PnL curve (`2025–2026`, `$0.50/MWh` fee) comparing `Scheduled 30-Day Refit SSPOC (p=20)` (`+$35,246`) and `Scheduled 30-Day Refit DMDc` (`+$24,112`) against `Continuous Ridge`, `Natural-Prior MLP`, `GBDT`, and `Static DMDc`.
-:::
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{../notebooks/figures/fig3_apples_to_apples_pnl.png}
+\caption{\textbf{Figure 3:} Apples-to-Apples 30-Day Scheduled Refit (720h) Cumulative Virtual Bidding PnL trajectories across 2025--2026 out-of-sample on N.Y.C. (Zone J, 1~MWh unit size, \$0.50/MWh fee). \texttt{Scheduled 30-Day Refit SSPOC} ($p=20$ sparse buses, 0 exogenous inputs) avoids the Summer 2025 drawdowns suffered by dense nonlinear classifiers and overtakes dense 983-feature \texttt{Continuous Ridge Regression} in 2026 to finish \#1 overall (+\$35,246, 3.56 Sharpe).}
+\end{figure*}
 
 
 ---
@@ -274,7 +290,7 @@ Our reproducible software pipeline (`Notebooks 00–04`) executes four sequentia
 
 ### 6.1 Key Conclusions
 1. **Exogenous Control & Scheduled Refitting Rescue Dynamical Models:** Unforced spectral models fail across a 48-hour auction lag due to eigenvalue damping [@sashidhar2022bopdmd; @dylewsky2020stochastically], whereas separating 424 Day-Ahead exogenous controls ($\mathbf{u}_k$) from delay-embedded grid states ($\mathbf{x}_k$) and refitting `DMDc` [@proctor2016dmdc] every 30 days achieves **`3.12` Annual Sharpe** and eliminates winter regime-drift drawdowns.
-2. **Task-Driven Sparse Sensing (`SSPOC`) Beats Dense Models with `3.6%` of the Grid:** Optimizing sensor placement directly for 3-class tail separation (`SSPOC`, $p=20$) [@brunton2016sspoc] outperforms whole-grid reconstruction (`QR-Pivoting`) [@manohar2018data], dense `DMDc`, and full-grid ML baselines—achieving **`3.56` Annual Sharpe (`+$35,246.10` Cum PnL)** with **zero exogenous weather or load covariates**.
+2. **Task-Driven Sparse Sensing (`SSPOC`) Beats Dense Models with `3.6%` of the Grid:** Optimizing sensor placement directly for 3-class tail separation (`SSPOC`, $p=20$) [@brunton2016sspoc] outperforms whole-grid reconstruction (`QR-Pivoting`) [@manohar2018data], dense `DMDc` (`3.12` Sharpe), and all full-grid baselines under an identical 30-day refit schedule—achieving **`3.56` Annual Sharpe (`+$35,246.10` Cum PnL)** ahead of dense 983-feature `Continuous Ridge` (`3.43` Sharpe, `+$33,770.60`), `Multinomial Logit` (`2.41`), `Natural-Prior MLP` (`2.24`), `Hourly ARIMAX` (`2.13`), and `GBDT` (`2.12`) with **zero exogenous weather or load covariates**.
 3. **Separating Invariant Grid Topology from Non-Stationary Market Regimes:** `SSPOC` automatically discovers NYISO's physical transmission choke points (`0.864` monthly Jaccard stability) [@rudin2019stop]. Holding these 20 upstream bellwether buses fixed while updating classifier weights every 30 days maximizes out-of-sample Sharpe while requiring minimal live telemetry infrastructure.
 4. **Cross-Formulation Synthesis:** `[PLACEHOLDER: 1–2 sentences summarizing how Patrick's SSPOC classification results compare against Tyler's continuous sparse regression results on sensor overlap and optimal budget p]`.
 
