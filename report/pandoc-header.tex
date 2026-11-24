@@ -1,0 +1,55 @@
+\usepackage[margin=1in]{geometry}
+\usepackage{float}
+\interfootnotelinepenalty=10000
+\usepackage{wrapfig}
+\usepackage{titlesec}
+\titlespacing*{\section}{0pt}{9pt}{4pt}
+\titlespacing*{\subsection}{0pt}{6pt}{3pt}
+% let pandoc figures float (htbp) so text fills page bottoms instead of leaving gaps
+\let\origfigure\figure
+\let\endorigfigure\endfigure
+\renewenvironment{figure}[1][]{%
+  \origfigure[htbp]
+}{%
+  \endorigfigure
+}
+% allow floats to occupy more of a page, reducing float-induced whitespace
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.9}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.8}
+\usepackage{caption}
+\captionsetup{font=small, labelfont=bf, labelformat=empty}
+\setlength{\abovecaptionskip}{4pt}
+\setlength{\belowcaptionskip}{0pt}
+\usepackage{graphicx}
+\setkeys{Gin}{width=0.85\linewidth,keepaspectratio}
+% let the Markdown use Unicode math/relation symbols freely
+% colored placeholder-chit boxes (see chit.lua): amber = figure, blue = table
+\usepackage[most]{tcolorbox}
+\newtcolorbox{placeholderfig}{breakable, enhanced, colback=orange!13, colframe=orange!80!black,
+  boxrule=1.2pt, arc=2pt, left=6pt, right=6pt, top=5pt, bottom=5pt}
+\newtcolorbox{placeholdertable}{breakable, enhanced, colback=blue!8, colframe=blue!65!black,
+  boxrule=1.2pt, arc=2pt, left=6pt, right=6pt, top=5pt, bottom=5pt}
+\usepackage{newunicodechar}
+\newunicodechar{≥}{\ensuremath{\geq}}
+\newunicodechar{≤}{\ensuremath{\leq}}
+\newunicodechar{≈}{\ensuremath{\approx}}
+\newunicodechar{≡}{\ensuremath{\equiv}}
+\newunicodechar{→}{\ensuremath{\rightarrow}}
+\newunicodechar{↔}{\ensuremath{\leftrightarrow}}
+\newunicodechar{×}{\ensuremath{\times}}
+\newunicodechar{∼}{\ensuremath{\sim}}
+\newunicodechar{−}{\ensuremath{-}}
+\newunicodechar{⁰}{\ensuremath{^{0}}}
+\newunicodechar{¹}{\ensuremath{^{1}}}
+\newunicodechar{²}{\ensuremath{^{2}}}
+\newunicodechar{³}{\ensuremath{^{3}}}
+\newunicodechar{⁴}{\ensuremath{^{4}}}
+\newunicodechar{⁵}{\ensuremath{^{5}}}
+\newunicodechar{⁶}{\ensuremath{^{6}}}
+\newunicodechar{⁷}{\ensuremath{^{7}}}
+\newunicodechar{⁸}{\ensuremath{^{8}}}
+\newunicodechar{⁹}{\ensuremath{^{9}}}
+\newunicodechar{σ}{\ensuremath{\sigma}}
+\newunicodechar{α}{\ensuremath{\alpha}}
