@@ -42,102 +42,6 @@ We constructed an hourly dataset from public NYISO market reports spanning **Jan
 
 [^2]: Enforcing a strict 48-hour causal purge gap between the latest realized spread observation and the target delivery hour prevents look-ahead leakage across all 24 hours of the $D\text{-}1$ Day-Ahead auction clearing window [@lopezdeprado2018advances].
 
-\begin{figure*}[t]
-\centering
-\resizebox{\textwidth}{!}{%
-\begin{tikzpicture}[
-    font=\sffamily\footnotesize,
-    >=Stealth,
-    node distance=5mm and 7mm,
-    box/.style={draw=#1!75!black, fill=#1!8, rounded corners=3pt, thick, align=center, minimum height=11mm, inner sep=4pt},
-    header/.style={font=\sffamily\bfseries\footnotesize, text=#1!80!black},
-    arrow/.style={->, thick, draw=black!70}
-]
-
-% Column 1: NYISO Causal Inputs
-\node[box=gray, minimum width=36mm] (nodal) {
-    \textbf{Realized Grid State}\\
-    559 Gen Buses + 15 Zones\\
-    Lagged $48\text{h}$ ($\mathcal{F}_{D-1,05:00}$)
-};
-\node[box=gray, minimum width=36mm, below=7mm of nodal] (exog) {
-    \textbf{Day-Ahead Controls}\\
-    424 Vintage-Filtered Vars\\
-    Trajectory $\mathbf{U}_{t-48:t}$
-};
-
-% Column 2: Three Modeling Paradigms
-\node[box=teal, minimum width=52mm, right=10mm of nodal, yshift=9mm] (sspoc) {
-    \textbf{Branch B: SSPOC (Classification)}\\
-    Rank-25 POD + LDA + $\ell_1$ Sensor Selection\\
-    \textbf{20 Fixed Upstream Buses (3.6\% Grid, 0 Exog)}
-};
-\node[box=orange, minimum width=52mm, below=4.5mm of sspoc] (qr) {
-    \textbf{Branch C: QR-Pivoting / Ising (Regression)}\\
-    POD Condition-Number / D-Optimal Placement\\
-    Whole-Grid Reconstruction ($R^2 = 0.945$)
-};
-\node[box=blue, minimum width=52mm, below=4.5mm of qr] (dmdc) {
-    \textbf{Branch A: Forced DMDc (Control)}\\
-    60-Dim Delay State + 424 Exog Controls\\
-    Rank-12 POD 48-Step Rollout ($\mathbf{A}_r\mathbf{z}_k + \mathbf{B}_r\mathbf{u}_k$)
-};
-
-% Column 3: Scheduled Adaptation & Decision Rule
-\node[box=teal, minimum width=42mm, right=9mm of sspoc] (clf_sspoc) {
-    \textbf{30-Day Refit Logit}\\
-    Fixed 20 Sensors + Monthly Clf\\
-    3-Class Tails ($q_{0.15}, q_{0.85}$)
-};
-\node[box=orange, minimum width=42mm, right=9mm of qr] (reg_qr) {
-    \textbf{Continuous Spread Reg.}\\
-    Sparse Nodal Regression\\
-    Cost Hurdle ($|\hat{S}_t| > \$0.50$)
-};
-\node[box=blue, minimum width=42mm, right=9mm of dmdc] (clf_dmdc) {
-    \textbf{30-Day Refit DMDc}\\
-    720h Expanding Window\\
-    Spread Hurdle ($|\hat{S}_t| > \tau$)
-};
-
-% Column 4: Unified OOS Backtest
-\node[box=purple, minimum width=36mm, right=9mm of reg_qr, minimum height=38mm] (oos) {
-    \textbf{2025--2026 OOS}\\
-    \textbf{N.Y.C. (Zone J)}\\
-    16,306 Hours\\[3pt]
-    INC / DEC / Abstain\\
-    1~MWh Unit Size\\
-    \$0.50/MWh Fee\\[3pt]
-    \textbf{SSPOC: 3.56 Sharpe}\\
-    \textbf{DMDc: 3.12 Sharpe}
-};
-
-% Arrows: Inputs -> Paradigms
-\draw[arrow] (nodal.east) -- ++(4mm,0) |- (sspoc.west);
-\draw[arrow] (nodal.east) -- ++(4mm,0) |- (qr.west);
-\draw[arrow] (nodal.east) -- ++(4mm,0) |- (dmdc.west);
-\draw[arrow, draw=blue!75!black] (exog.east) -- ++(5.5mm,0) |- ([yshift=-2mm]dmdc.west);
-
-% Arrows: Paradigms -> Refit/Decision
-\draw[arrow] (sspoc.east) -- (clf_sspoc.west);
-\draw[arrow] (qr.east) -- (reg_qr.west);
-\draw[arrow] (dmdc.east) -- (clf_dmdc.west);
-
-% Arrows: Refit/Decision -> OOS Backtest
-\draw[arrow] (clf_sspoc.east) -- ++(4mm,0) |- ([yshift=11mm]oos.west);
-\draw[arrow] (reg_qr.east) -- (oos.west);
-\draw[arrow] (clf_dmdc.east) -- ++(4mm,0) |- ([yshift=-11mm]oos.west);
-
-% Stage Labels Above Columns
-\node[header=gray, above=2mm of sspoc.north west, xshift=-24mm] {1. Causal Filtration};
-\node[header=black, above=2mm of sspoc] {2. Sparse / Modal Decomposition};
-\node[header=black, above=2mm of clf_sspoc] {3. Refit \& Signal Rule};
-\node[header=purple, above=2mm of oos.north, yshift=3.5mm] {4. Evaluation};
-
-\end{tikzpicture}%
-}
-\caption{\textbf{Figure 1:} End-to-end causal filtration ($\mathcal{F}_{D-1,05:00}$) and cross-paradigm modeling architecture comparing discriminative sparse sensor placement (\texttt{SSPOC}), continuous reconstruction sensing (\texttt{QR-Pivoting}), and forced dynamical control (\texttt{DMDc}) on NYISO Zone J (\texttt{N.Y.C.}).}
-\end{figure*}
 
 ---
 
@@ -180,7 +84,9 @@ where column pivoting $\mathbf{P}$ greedily selects $p$ sensor locations that ma
 
 ## 4. Methodology & Experimental Pipeline
 
-Our reproducible software pipeline (`Notebooks 00–04`) executes four sequential stages under strict chronological walk-forward validation [@lopezdeprado2018advances; @bailey2014deflated]:
+Our reproducible software pipeline^[All source code, data loaders, and reproducible Jupyter notebooks (`Notebooks 00–04`) are publicly available at <https://github.com>.] (`Notebooks 00–04`) executes four sequential stages under strict chronological walk-forward validation [@lopezdeprado2018advances; @bailey2014deflated]:
+
+
 
 1. **Stage 1 — Econometric, ML & Spectral Baselines (`Notebook 01`):** Benchmarks 14 static (`2020–2024` frozen) reference models on `N.Y.C.` (`Continuous Ridge`, `Natural-Prior MLP`, `GBDT`, `Multinomial Logit`, `Hourly ARIMAX`, `LDA`, `Causal 48h Persistence`, and unforced `Exact DMD` / `BOP-DMD`) [@mann2016dmd; @sashidhar2022bopdmd; @galarneauvincent2023foreseeing; @hubert2026trading], and re-evaluates the five primary econometric and ML baselines under the **identical 30-day (`720h`) expanding-window refit schedule** for a strictly apples-to-apples comparison.
 
