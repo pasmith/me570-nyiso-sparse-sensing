@@ -11,6 +11,7 @@ This folder contains the Jupyter notebooks for our NYISO Day-Ahead to Real-Time 
   2. `02_dmdc_static_forensics.ipynb` — Forensic DMD diagnostics & static `DMDc` baseline
   3. `03_dmdc_iterative_scheduled_refit.ipynb` — Iterative rollout & 30-day scheduled refit `DMDc`
   4. `04_sspoc_sparse_sensor_placement.ipynb` — `SSPOC` sparse sensor ablation & cross-paradigm comparison
+  5. `05_sparse_sensor_regression.ipynb` — **TODO**
 * **Supporting Python Modules:**
   * `data_loader.py` — Downloads, aligns, and caches NYISO P-2A/2B/4A/4B/7/19/23/27/32/54/58/59/63/70/511 datasets into `nyiso_data/merged_parquet/`
   * `baseline.py` — Econometric and ML reference models (`ARIMAX`, `Ridge`, `GBDT`, `Multinomial Logit`, `LDA`, `MLP`)
